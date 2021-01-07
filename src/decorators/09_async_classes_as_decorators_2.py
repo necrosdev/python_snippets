@@ -3,34 +3,35 @@ import asyncio
 
 class DecoClass:
     def __init__(self, *args, **kwargs):
-        print("INIT", args, kwargs)
-        self._args = args
+        self.func = args[0]
+        self._args = args[1:] if len(args) > 1 else []
         self._kwargs = kwargs
 
     async def __call__(self, *args, **kwargs):
-        print("The call", args, kwargs)
-        if len(self._args) == 1 and len(self._kwargs) == 0:
-            # No hay argumentos.
-            return await self._args[0]()
-        else:
-            # Si que los hay.
-            func = args[0]
-
-            async def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
-
-            return wrapper
+        return await self.func(*args, **kwargs)
 
 
-@DecoClass
-async def fun(*args, **kwargs):
-    print(f"I'm a fun decorated function! args={args} kwargs={kwargs}")
+def deco_func(*args, **kwargs):
+    function = args[0]
+    if callable(function):
+        return DecoClass(function)
+    else:
+
+        def wrapper(function):
+            return DecoClass(function, *args, **kwargs)
+
+        return wrapper
 
 
-@DecoClass("asd", cuak=2)
-async def funny(*args, **kwargs):
-    print(f"I'm a funny decorated function! args={args} kwargs={kwargs}")
+@deco_func
+async def func_1(*args, **kwargs):
+    print(f"func_1: I'm a decorated function! args={args} kwargs={kwargs}")
 
 
-asyncio.get_event_loop().run_until_complete(fun("asd", cuak="qwe"))
-asyncio.get_event_loop().run_until_complete(funny("asd", cuak="qwe"))
+@deco_func("deco_arg", deco_kwarg=2)
+async def func_2(*args, **kwargs):
+    print(f"func_2: I'm a decorated function! args={args} kwargs={kwargs}")
+
+
+asyncio.get_event_loop().run_until_complete(func_1("arg", kwarg=20))
+asyncio.get_event_loop().run_until_complete(func_2("arg", kwarg=30))
