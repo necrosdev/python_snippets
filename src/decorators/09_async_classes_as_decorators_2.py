@@ -1,9 +1,12 @@
 import asyncio
+import functools
 
 
 class DecoClass:
     def __init__(self, *args, **kwargs):
-        self.func = args[0]
+        func = args[0]
+        functools.update_wrapper(self, func)
+        self.func = func
         self._args = args[1:] if len(args) > 1 else []
         self._kwargs = kwargs
 
@@ -12,13 +15,13 @@ class DecoClass:
 
 
 def deco_func(*args, **kwargs):
-    function = args[0]
-    if callable(function):
-        return DecoClass(function)
+    func = args[0]
+    if callable(func):
+        return DecoClass(func)
     else:
 
-        def wrapper(function):
-            return DecoClass(function, *args, **kwargs)
+        def wrapper(func):
+            return DecoClass(func, *args, **kwargs)
 
         return wrapper
 
